@@ -36,6 +36,8 @@ from sklearn.preprocessing import LabelEncoder, LabelBinarizer, OneHotEncoder, S
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.svm import SVC
 # Score of models
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
@@ -44,23 +46,20 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 def classification(df, Target):
     '''
-    
-
     Parameters
     ----------
     df : Pandas.DataFrame
         DataFrame sur lequel on souhaite entraîner et appliquer le modèle
-    
     Target : str
         Nom de la colonne contenant la  classification
         
     Random_seed : int, compris entre 0 et 999
         Seed du random_state pour le train_test_split. The default is 42.
-    
     Sortie :
         Affiche le score du modèle et la matrice de confusion
-
     '''
+    model = GradientBoostingClassifier()
+    
     Target_Encoder = LabelEncoder()
     y = Target_Encoder.fit_transform(df[Target])
     
@@ -82,24 +81,31 @@ def classification(df, Target):
                                     [('data_num', transformer_num, column_num),
                                      ('data_cat', transformer_cat, column_cat)])
     
-    model = DecisionTreeClassifier()
-    
     pipe_model = Pipeline(steps=
                           [('preparation', preparation),
                            ('model', model)])
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 42, stratify = y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, stratify = y)
     
     pipe_model.fit(X_train, y_train)
-    
     y_pred = pipe_model.predict(X_test)
     
-    print("Accuracy Score :", round(accuracy_score(y_test, y_pred), 5))
-    
+    score = accuracy_score(y_test, y_pred)
     ConfusionMatrixDisplay(confusion_matrix(y_test, y_pred)).plot()
     
+    return(score)
+
+
 df = pd.read_csv('spam_features.csv')
-classification(df.drop(columns = 'content'), 'label')
+print(round(classification(df.drop(columns = 'content'), 'label'), 4))
+
+
+#%%
+
+#scores = []
+#for k in range (1000):
+#    scores.append(classification(df.drop(columns = 'content'), 'label'))
+print(pd.Series(scores).describe())
 
 #%%
 
